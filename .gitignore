@@ -79,6 +79,9 @@ uyPro/uyPro/proxy.list
 uyPro/uyPro/proxy2.list
 uyPro/uyPro/proxy_centcommil.list
 
+# Test files
+uyPro/uyPro/text111.py
+
 # CSV and image files
 *.csv
 images/

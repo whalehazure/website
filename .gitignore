@@ -1,0 +1,84 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+PIPFILE.lock
+
+# Virtual Environment
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
+logs/
+task.log
+website.log
+watchdog_scrapy.log
+
+# Scrapy
+.scrapy/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Data files
+data/
+zips/
+tasklist/
+tasklistbk/
+tasklistworking/
+tmp/
+tmp3/
+
+# SVN
+.svn/
+
+# Chrome driver
+chromedriver.exe
+
+# Configuration files with sensitive data (uncomment if needed)
+# *.ini
+# proxy*.list
+
+# CSV and image files
+*.csv
+images/
+
+# JSON data files (keep spider configs)
+# *.json
+info.json
+
+# HTML test files
+*.html

@@ -1,0 +1,14 @@
+{
+  "domain": "httpbin.org",
+  "site_type": "general",
+  "language": "en",
+  "article_links_found": 0,
+  "pagination_type": "none",
+  "api_endpoints_found": 0,
+  "selectors_identified": {
+    "title": 0,
+    "content": 0,
+    "date": 0,
+    "author": 0
+  }
+}

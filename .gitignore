@@ -68,9 +68,16 @@ tmp3/
 # Chrome driver
 chromedriver.exe
 
-# Configuration files with sensitive data (uncomment if needed)
+# Configuration files with sensitive data
 # *.ini
-# proxy*.list
+
+# Proxy list files (sensitive data)
+proxy.list
+proxy2.list
+proxy_centcommil.list
+uyPro/uyPro/proxy.list
+uyPro/uyPro/proxy2.list
+uyPro/uyPro/proxy_centcommil.list
 
 # CSV and image files
 *.csv

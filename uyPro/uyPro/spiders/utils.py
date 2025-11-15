@@ -59,7 +59,7 @@ from requests.exceptions import HTTPError, ProxyError
 # ==================== 项目内部导入 ====================
 from uyPro.settings import (
     dest_zip_file_path, zip_file_path, deviceid, pgmid,
-    folder_path, processed_path, traproxylist, url_domain_list
+    folder_path, processed_path, traproxylist, url_domain_list, proxy_list
 )
 
 # ==================== 全局配置 ====================
@@ -740,7 +740,7 @@ def translate_text_googleapi(text, language='zh-CN', max_length=5000, split_func
     # 正确的httpx代理配置
     proxy = None
     if traproxylist and platform.system() != 'Windows':
-        proxy = random.choice(traproxylist)
+        proxy = random.choice(proxy_list)
 
     max_retries = 3
     for attempt in range(1, max_retries + 1):

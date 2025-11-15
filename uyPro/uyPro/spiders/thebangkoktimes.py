@@ -34,10 +34,10 @@ class ThebangkoktimesSpider(scrapy.Spider):
         try:
             taskid, method, churl, tweeturl, dltype, inputdata, inputfilename, recent_files_append = start_spider()
             # taskid, method, churl, tweeturl, dltype, inputdata, inputfilename, recent_files_append = (
-            #     '45ca39c6ebcfa6449f672481fc4a084b_1705450920', 'getchannel', '', '', 'full', '', '1_1_1_1', '')
+            #     '45ca39c6ebcfa6449f672481fc4a084b_1705450920', 'getchanne', '', '', 'full', '', '1_1_1_1', '')
             # churl = 'https://thebangkoktimes.com/'
             # inputdata = {}
-            # tweeturl = 'https://www.ptv.com.pk/ptvNews/urduNewsDetail/79254'
+            # tweeturl = 'https://thebangkoktimes.com/2568092103'
             self.taskid = taskid
             self.bid = inputfilename.split('_')[3]
             self.crawler.stats.set_value('inputdata', inputdata)
@@ -47,8 +47,8 @@ class ThebangkoktimesSpider(scrapy.Spider):
             if homepage:
                 yield scrapy.Request(url=homepage, callback=self.parse)
             elif method == 'getchannel':
-                churl = 'https://thebangkoktimes.com/posts' if churl == (
-                        'https://thebangkoktimes.com/' or 'https://thebangkoktimes.com') else churl
+                base_url = 'https://thebangkoktimes.com'
+                churl = f'{base_url}/posts' if churl.rstrip('/') == base_url else churl
                 yield scrapy.Request(url=churl, callback=self.parse_sec, meta={'ch_url': churl})
             else:
                 # gettweet

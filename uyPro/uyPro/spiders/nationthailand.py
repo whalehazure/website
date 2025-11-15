@@ -80,7 +80,7 @@ class NationthailandSpider(scrapy.Spider):
         for link in links:
             if not link:
                 continue
-            link = response.urljoin(link)
+            link = urljoin('https://www.nationthailand.com', link)
             link_hash = hashlib.sha1(link.encode()).hexdigest()
             if self.redis_conn.hexists(f'{self.proname}_hash_done_urls', link_hash) and self.inc:
                 ch_urls_json = self.redis_conn.hget(f'{self.proname}_hash_done_urls', link_hash)
@@ -123,7 +123,7 @@ class NationthailandSpider(scrapy.Spider):
         for link in links:
             if not link:
                 continue
-            link = response.urljoin(link)
+            link = urljoin('https://www.nationthailand.com', link)
             link_hash = hashlib.sha1(link.encode()).hexdigest()
             if self.redis_conn.hexists(f'{self.proname}_hash_done_urls', link_hash) and self.inc:
                 ch_urls_json = self.redis_conn.hget(f'{self.proname}_hash_done_urls', link_hash)
@@ -150,6 +150,12 @@ class NationthailandSpider(scrapy.Spider):
             yield response.follow(url=next_url, callback=self.parse_trd, meta={'ch_url': ch_url})
 
     def article(self, response):
+        # 如果response是json格式，打印出来
+        if response.text.startswith('{'):
+            logging.warning('Response is JSON, expected HTML article page')
+            print(response.text)
+            print(response.url)
+            return
         item = UyproItem()
         link = response.meta['link']
         item['ch_url'] = response.meta['ch_url']

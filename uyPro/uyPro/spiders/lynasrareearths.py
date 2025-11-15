@@ -35,7 +35,7 @@ class LynasrareearthsSpider(scrapy.Spider):
         try:
             taskid, method, churl, tweeturl, dltype, inputdata, inputfilename, recent_files_append = start_spider()
             # taskid, method, churl, tweeturl, dltype, inputdata, inputfilename, recent_files_append = (
-            #     '45ca39c6ebcfa6449f672481fc4a084b_1705450920', 'getchannel', '', '', 'inc', '', '1_1_1_1', '')
+            #     '45ca39c6ebcfa6449f672481fc4a084b_1705450920', 'getchannel', '', '', 'full', '', '1_1_1_1', '')
             # churl = 'https://lynasrareearths.com/investors-media/briefings/'
             # inputdata = {}
             # tweeturl = 'https://www.ptv.com.pk/ptvNews/urduNewsDetail/79254'

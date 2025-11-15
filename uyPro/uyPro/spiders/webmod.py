@@ -2533,8 +2533,7 @@ def parse_tweet_southmongoliaorg(response, item):
     html_content = response.xpath("//article/div[contains(@class,'entry-content')]").get('')
     img_url = response.xpath("//article/div[contains(@class,'entry-content')]/figure/img/@src").getall()
     return parsetweet_bing_new(item, article_title, article_content, tweet_author, tweet_createtime, img_url,
-                               html_content,
-                               dt="Asia/Tokyo")
+                               html_content, dt="Asia/Tokyo")
 
 
 def parse_tweet_newsmn(response, item):
@@ -2563,6 +2562,57 @@ def parse_tweet_lynasrareearths(response, item):
         "//div[@id='content']/section/div[@class='container']/div[@class='row']//img/@src").getall()
     return parsetweet(item, article_title, article_content, tweet_author, tweet_createtime, img_url, html_content
                       , _translatetext=translate_text_googleapi)
+
+
+def parse_tweet_nationthailand(response, item):
+    article_title = response.xpath("string(//meta[@property='og:title']/@content)").get('').strip()
+    tweet_createtime = response.xpath("string(//meta[@property='article:published_time']/@content)").get('').strip()
+    tweet_author = ''
+    ps = response.xpath("//div[@class='section-1']/div[@class='block-1']/div/div//node()[self::p or self::h2 or "
+                        "self::ul]|//div[@class='section-1']/div[@class='block-1']/div/h2")
+    article_content = '\n'.join([p.xpath('string(.)').get('').strip() for p in ps if p]).strip()
+    html_content = response.xpath("//div[@class='section-1']/div[@class='block-1']/div").get('')
+    img_url = response.xpath("//meta[@property='og:image']/@content|//div[@class='section-1']/div["
+                             "@class='block-1']/div/div//picture/img/@src").getall()
+    return parsetweet(item, article_title, article_content, tweet_author, tweet_createtime, img_url, html_content,
+                      _translatetext=translate_text_googleapi)
+
+
+def parse_tweet_thebangkoktimes(response, item):
+    article_title = response.xpath("string(//html/head/title)").get('').rsplit('- thebangkoktimes', 1)[0].strip()
+    tweet_createtime = response.xpath("string(//meta[@property='article:published_time']/@content)").get('').strip()
+    tweet_author = ''
+    ps = response.xpath("//div[@class='post-text']/p")
+    article_content = '\n'.join([p.xpath('string(.)').get('').strip() for p in ps if p]).strip()
+    html_content = response.xpath("//div[@class='post-text']").get('')
+    img_url = response.xpath("//meta[@property='og:image']/@content|//div[@class='post-text']/p/img/@src").getall()
+    return parsetweet(item, article_title, article_content, tweet_author, tweet_createtime, img_url, html_content,
+                      _translatetext=translate_text_googleapi, dt="Asia/Bangkok")
+
+
+def parse_tweet_mmgpmedia(response, item, contentpublishtime=''):
+    article_title = response.xpath("string(/html/head/title)").get('').strip()
+    tweet_createtime = contentpublishtime
+    tweet_author = ''
+    ps = response.xpath("//div[@class='article_content']/div/p")
+    article_content = '\n'.join([p.xpath('string(.)').get('').strip() for p in ps if p]).strip()
+    html_content = response.xpath("//div[@class='article_content']/div").get('')
+    img_url = response.xpath("//div[@class='article_content']/div/p/img/@src").getall()
+    return parsetweet(item, article_title, article_content, tweet_author, tweet_createtime, img_url, html_content,
+                      translate=False)
+
+
+def parse_tweet_moigov(response, item):
+    article_title = response.xpath("string(//meta[@property='og:title']/@content)").get('').rsplit('|', 1)[0].strip()
+    tweet_createtime = \
+        response.xpath("string(//header/div[@class='node__meta']/span/text()[2])").get('').split('on ', 1)[-1].strip()
+    tweet_author = ''
+    ps = response.xpath("//div[@class='node__content clearfix']/div/p")
+    article_content = '\n'.join([p.xpath('string(.)').get('').strip() for p in ps if p]).strip()
+    html_content = response.xpath("//div[@class='node__content clearfix']").get('')
+    img_url = response.xpath("//meta[@property='og:image']/@content").getall()
+    return parsetweet(item, article_title, article_content, tweet_author, tweet_createtime, img_url, html_content,
+                      _translatetext=translate_text_googleapi, dt="Asia/Yangon")
 
 
 tweet_mapping = {
@@ -2694,7 +2744,11 @@ tweet_mapping = {
     'smhric.org': parse_tweet_smhricorg,
     'southmongolia.org': parse_tweet_southmongoliaorg,
     'news.mn': parse_tweet_newsmn,
-    'lynasrareearths.com': parse_tweet_lynasrareearths
+    'lynasrareearths.com': parse_tweet_lynasrareearths,
+    'nationthailand.com': parse_tweet_nationthailand,
+    'thebangkoktimes.com': parse_tweet_thebangkoktimes,
+    'mmgpmedia.com': parse_tweet_mmgpmedia,
+    'moi.gov.mm': parse_tweet_moigov
 }
 
 

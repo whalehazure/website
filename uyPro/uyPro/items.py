@@ -54,6 +54,9 @@ class UyproItem(scrapy.Item):
     tweet_lang = scrapy.Field()
     """str: 文章语言，原始文章的语言代码（如：en, zh, ar等）"""
 
+    tweet_ipv4 = scrapy.Field()
+    """str: 发布者IPv4地址，文章发布者的IP地址"""
+
     # ==================== 时间字段 ====================
 
     tweet_createtime = scrapy.Field()
@@ -84,6 +87,9 @@ class UyproItem(scrapy.Item):
 
     tweet_video = scrapy.Field()
     """list: 视频文件，文章中的视频内容"""
+
+    tweet_comments = scrapy.Field()
+    """list: 评论数据列表，包含所有评论的详细信息"""
 
     # ==================== 系统字段 ====================
 

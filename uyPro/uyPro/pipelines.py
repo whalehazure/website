@@ -105,6 +105,7 @@ class CustomFilesPipeline(FilesPipeline):
         self.finish_count = 0
         self.data_list = []
         self.data_ch_list = []
+        self.comment_list = []  # 存储评论数据
 
     def get_media_requests(self, item, info):
         for img_url in item.get("tweet_img_url", []):
@@ -138,6 +139,12 @@ class CustomFilesPipeline(FilesPipeline):
             item['tweet_createtime'] = item['capture_time']
         bid = item['bid']
         adapter = ItemAdapter(item)
+
+        # 处理评论数据
+        if adapter.get("tweet_comments"):
+            comments = adapter.get("tweet_comments")
+            self.comment_list.extend(comments)
+            logging.info(f"添加 {len(comments)} 条评论到评论列表")
         if adapter.get("tweet_url", ''):
             data = {}
             for field in ["ch_url", "tweet_id", "tweet_title", "tweet_title_tslt", "tweet_url", "tweet_content",
@@ -168,6 +175,8 @@ class CustomFilesPipeline(FilesPipeline):
             self.data_list = self.data_list[20:]
             ch_elements = self.data_ch_list
             self.data_ch_list = []
+            comment_elements = self.comment_list
+            self.comment_list = []
             tim = str(time.time())
             zipname = f"website-{bid}-{deviceid}-{pgmid}-{tim[:10]}-{tim.split('.')[-1][:3]}.zip"
             zip_path = os.path.join(zip_file_path, zipname)
@@ -175,6 +184,12 @@ class CustomFilesPipeline(FilesPipeline):
             json_path = os.path.join(zip_file_path, f'{json_name}')
             json_ch_name = f"website_channel-{bid}-{deviceid}-{pgmid}-{tim[:10]}-{tim.split('.')[-1][:3]}.bcp"
             json_ch_path = os.path.join(zip_file_path, f'{json_ch_name}')
+
+            # 生成评论 BCP 文件（只在有评论时）
+            comment_path = ''
+            if comment_elements:
+                comment_name = f"website_tc-{bid}-{deviceid}-{tim[:10]}-{tim.split('.')[-1][:3]}.bcp"
+                comment_path = os.path.join(zip_file_path, f'{comment_name}')
 
             with open(json_path, "w", encoding='utf-8') as f:
                 for element in elements:
@@ -185,6 +200,15 @@ class CustomFilesPipeline(FilesPipeline):
                 for ch_element in ch_elements:
                     json_data = json.dumps(ch_element, ensure_ascii=False) + "\n"
                     f.write(json_data)
+
+            # 写入评论数据（只在有评论且路径已生成时）
+            if comment_elements and comment_path:
+                with open(comment_path, "w", encoding='utf-8') as f:
+                    for comment in comment_elements:
+                        # 每行一个 JSON 对象
+                        json_data = json.dumps(comment, ensure_ascii=False) + "\n"
+                        f.write(json_data)
+                logging.info(f"生成评论 BCP 文件: {os.path.basename(comment_path)}, 共 {len(comment_elements)} 条评论")
 
             files_path = []
             for element in elements:
@@ -198,11 +222,17 @@ class CustomFilesPipeline(FilesPipeline):
             with ZipFile(zip_path, "w") as zipfile:
                 zipfile.write(json_path, os.path.basename(json_path))
                 zipfile.write(json_ch_path, os.path.basename(json_ch_path))
+                # 添加评论 BCP 文件到 zip（只在有评论且文件存在时）
+                if comment_path and os.path.exists(comment_path):
+                    zipfile.write(comment_path, os.path.basename(comment_path))
                 if files_path:
                     for path in files_path:
                         zipfile.write(path, os.path.basename(path))
             os.remove(json_path)
             os.remove(json_ch_path)
+            # 删除评论 BCP 文件（只在文件存在时）
+            if comment_path and os.path.exists(comment_path):
+                os.remove(comment_path)
             dest_zip_path = os.path.join(dest_zip_file_path, zipname)
             shutil.move(zip_path, dest_zip_path) if platform.system() == 'Windows' else subprocess.call(
                 ['mv', zip_path, dest_zip_path])
@@ -242,6 +272,19 @@ class CustomFilesPipeline(FilesPipeline):
                     for ch_element in self.data_ch_list:
                         json_data = json.dumps(ch_element, ensure_ascii=False) + "\n"
                         f.write(json_data)
+
+            # 处理剩余的评论数据（只在有评论时）
+            comment_path = ''
+            if self.comment_list:
+                comment_name = f"website_tc-{bid}-{deviceid}-{tim[:10]}-{tim.split('.')[-1][:3]}.bcp"
+                comment_path = os.path.join(zip_file_path, f'{comment_name}')
+                with open(comment_path, "w", encoding='utf-8') as f:
+                    for comment in self.comment_list:
+                        # 每行一个 JSON 对象
+                        json_data = json.dumps(comment, ensure_ascii=False) + "\n"
+                        f.write(json_data)
+                logging.info(f"close_spider: 生成评论 BCP 文件: {comment_name}, 共 {len(self.comment_list)} 条评论")
+
             taskname = f"website_task-{bid}-{deviceid}-{pgmid}-{tim[:10]}-{tim.split('.')[-1][:3]}.bcp"
             task_path = os.path.join(zip_file_path, f'{taskname}')
             noresult = False if self.finish_count else True
@@ -260,11 +303,17 @@ class CustomFilesPipeline(FilesPipeline):
                             zipfile.write(path, os.path.basename(path))
                 if json_ch_path:
                     zipfile.write(json_ch_path, os.path.basename(json_ch_path))
+                # 添加评论 BCP 文件到 zip
+                if comment_path and os.path.exists(comment_path):
+                    zipfile.write(comment_path, os.path.basename(comment_path))
                 zipfile.write(task_path, os.path.basename(task_path))
             if json_path:
                 os.remove(json_path)
             if json_ch_path:
                 os.remove(json_ch_path)
+            # 删除评论 BCP 文件
+            if comment_path and os.path.exists(comment_path):
+                os.remove(comment_path)
             os.remove(task_path)
             dest_zip_path = os.path.join(dest_zip_file_path, zipname)
             shutil.move(zip_path, dest_zip_path) if platform.system() == 'Windows' else subprocess.call(

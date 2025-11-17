@@ -2,11 +2,12 @@ import hashlib
 import json
 import logging
 import re
+import datetime
 
 import scrapy
 
 from uyPro.items import UyproItem
-from uyPro.settings import redis_conn
+from uyPro.settings import redis_conn, deviceid, pgmid
 from .utils import start_spider, update_ch_urls, parse_date
 from .webmod import convert_traditional_to_simplified
 
@@ -258,7 +259,11 @@ class PttccSpider(scrapy.Spider):
                     'comment_ch_ids': push_userid,  # 只保存用户ID
                     'comment_topic': push_content,  # 评论内容
                     'comment_topic_tslt': comment_simplified,  # 繁体转简体
-                    'comment_ipv4': comment_ip  # IPv4 地址
+                    'comment_ipv4': comment_ip,  # IPv4 地址
+                    'deviceid': deviceid,
+                    'pgmid': pgmid,
+                    'taskid': self.taskid,
+                    'capture_time': datetime.datetime.utcnow().strftime('%a %b %d %H:%M:%S +0000 %Y')
                 }
                 comments.append(comment_data)
 

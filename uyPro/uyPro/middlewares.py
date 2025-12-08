@@ -659,10 +659,25 @@ class DrissionPageMiddleware:
                 return self._get_page_response(request)
 
             # 处理普通URL
-            if self.mode == 'd' or platform.system() == 'Windows':
-                self.page.get(request.url)
+            if 'reuters.com' in request.url:
+                if self.mode == 'd':
+                    self.page.get(request.url)
+                    time.sleep(10)
+                else:
+                    headers = {
+                        'user-agent': self.user_agent,
+                        'accept-language': 'en-US,en;q=0.9',
+                        'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7'
+                    }
+                    if platform.system() == 'Windows':
+                        self.page.get(request.url, headers=headers)
+                    else:
+                        self.page.get(request.url, headers=headers, proxies=proxies)
             else:
-                self.page.get(request.url, proxies=proxies)
+                if self.mode == 'd' or platform.system() == 'Windows':
+                    self.page.get(request.url)
+                else:
+                    self.page.get(request.url, proxies=proxies)
             # 处理 EIN News Pakistan Terrorism 页面
             if self._is_ein_news_pakistan_terrorism(request.url):
                 if not self._handle_ein_news_pakistan_terrorism(spider):
@@ -680,18 +695,32 @@ class DrissionPageMiddleware:
             if 'gknb.gov.kg' in request.url:
                 request.meta['tweet_img'] = self._download_gknb_images(request.url, spider)
                 return self._get_page_response(request)
+
             self.page.wait.doc_loaded()
             changemodelist = [
                 'vot.org',
+                'reuters.com'
             ]
             if self.mode == 'd' and any(domain in request.url for domain in changemodelist):
-                if platform.system() == 'Windows':
-                    self.page.change_mode()
+                if 'reuters.com' in request.url:
+                    headers = {
+                        'user-agent': self.user_agent,
+                        'accept-language': 'en-US,en;q=0.9',
+                        'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7'
+                    }
+                    if platform.system() == 'Windows':
+                        self.page.change_mode(go=False)
+                        self.page.get(request.url, headers=headers)
+                    else:
+                        self.page.change_mode(go=False)
+                        self.page.get(request.url, headers=headers, proxies=proxies)
                 else:
-                    self.page.change_mode(go=False)
-                    self.page.get(request.url, proxies=proxies)
+                    if platform.system() == 'Windows':
+                        self.page.change_mode()
+                    else:
+                        self.page.change_mode(go=False)
+                        self.page.get(request.url, proxies=proxies)
                 self.mode = 's'
-
             return self._get_page_response(request)
         except Exception as e:
             # spider.logger.error(f'处理请求 {request.url} 时出错: {e}')
@@ -706,6 +735,15 @@ class DrissionPageMiddleware:
         co.set_user_agent(user_agent=self.user_agent)
         co.headless()
         co.set_timeouts(base=10)
+
+        if 'reuters.com' in url:
+            co.headless(False)
+            co.set_user_agent(user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, '
+                                         'like Gecko) Chrome/142.0.0.0 Safari/537.36')
+        if 'politico.com' in url:
+            # co.headless(False)
+            co.set_load_mode('eager')
+            co.no_imgs()
 
         # 对于world.einnews.com域名，设置eager加载模式以加快页面加载
         if url and 'world.einnews.com' in url:

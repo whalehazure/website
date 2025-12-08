@@ -768,14 +768,16 @@ def parse_tweet_newsweek(response, item):
 
 def parse_tweet_usatoday(response, item):
     article_title = response.xpath("string(//meta[@property='og:title']/@content)").get('').rsplit('|', 1)[0].strip()
-    ps = response.xpath("//div[@class='gnt_ar_b']//p")
+    ps = response.xpath("//div[@class='gnt_ar_b']//node()[self::p or self::h2]|//div[@class='gnt_sv_vb']")
     article_content = '\n'.join([p.xpath('string(.)').get('').strip() for p in ps])
     tweet_author = response.xpath("string(//meta[@property='article:author']/@content)").get('').strip()
     tweet_createtime = next(iter(response.xpath('//script').re(r'"contentDatePublished":\s*"([^"]+)"')), '').strip()
-    imgurls = response.xpath("//div[@class='gnt_ar_b']/figure//img/@data-gl-src").getall()
+    imgurls = response.xpath("//div[@class='gnt_ar_b']/figure//img/@data-gl-src|//meta[@property='og:image']/@content"
+                             ).getall()
     img_url = [urljoin('https://www.usatoday.com/', imgurl) for imgurl in imgurls if imgurl.strip()]
     html_content = response.xpath("//div[@class='gnt_ar_b']").get('')
-    return parsetweet(item, article_title, article_content, tweet_author, tweet_createtime, img_url, html_content)
+    return parsetweet(item, article_title, article_content, tweet_author, tweet_createtime, img_url, html_content,
+                      _translatetext=translate_text_googleapi)
 
 
 def parse_tweet_theguardian(response, item):
@@ -793,14 +795,17 @@ def parse_tweet_axios(response, item):
     article_title = response.xpath("string(//meta[@property='og:title']/@content)").get('').rsplit('|', 1)[0].strip()
     ps = response.xpath("//div[@data-vars-category='story']//div[contains(@class,"
                         "'DraftjsBlocks_draftjs')]/p|//div[@data-vars-category='story']//div[contains(@class,"
-                        "'DraftjsBlocks_draftjs')]/ul/li")
+                        "'DraftjsBlocks_draftjs')]/ul/li|//div/span[@data-schema='smart-brevity' or "
+                        "@class='gated-content']/node()[self::p or self::ul]|//div[@data-vars-content-id]/div/node()["
+                        "self::p or self::ul]")
     article_content = '\n'.join([p.xpath('string(.)').get('').strip() for p in ps])
     tweet_author = response.xpath("string(//meta[@name='author']/@content)").get('').strip()
     tweet_createtime = response.xpath("//meta[@name='date']/@content").get('').strip()
     img_url = response.xpath("//meta[@property='og:image']/@content").getall()
     html_content = response.xpath(
         "//div[@data-vars-category='story']//div[contains(@class,'DraftjsBlocks_draftjs')]").get('')
-    return parsetweet(item, article_title, article_content, tweet_author, tweet_createtime, img_url, html_content)
+    return parsetweet(item, article_title, article_content, tweet_author, tweet_createtime, img_url, html_content,
+                      _translatetext=translate_text_googleapi)
 
 
 def parse_tweet_economist(response, item):
@@ -888,13 +893,15 @@ def parse_tweet_foreignpolicy(response, item):
 
 def parse_tweet_cnn(response, item):
     article_title = response.xpath("string(//meta[@property='og:title']/@content)").get('').rsplit('|', 1)[0].strip()
-    ps = response.xpath("//div[@class='article__content']/p|//div[@id='app']/main/article/div[@class='wrapP']/p")
+    ps = response.xpath("//div[@class='article__content']/p|//div[@id='app']/main/article/div["
+                        "@class='wrapP']/p|//article[@class='live-story']//article|//div[@class='video-resource']//p")
     article_content = '\n'.join([p.xpath('string(.)').get('').strip() for p in ps])
     tweet_author = response.xpath("string(//meta[@name='author']/@content)").get('').strip()
     tweet_createtime = response.xpath("//meta[@property='article:published_time']/@content").get('').strip()
     img_url = response.xpath("//meta[@property='og:image']/@content").getall()
     html_content = response.xpath("//div[@class='article__content']").get('')
-    return parsetweet(item, article_title, article_content, tweet_author, tweet_createtime, img_url, html_content)
+    return parsetweet(item, article_title, article_content, tweet_author, tweet_createtime, img_url, html_content,
+                      _translatetext=translate_text_googleapi)
 
 
 def parse_tweet_victimsofcommunism(response, item):
@@ -2615,6 +2622,121 @@ def parse_tweet_moigov(response, item):
                       _translatetext=translate_text_googleapi, dt="Asia/Yangon")
 
 
+def parse_tweet_svtodayorg(response, item):
+    article_title = response.xpath("string(//meta[@property='og:title']/@content)").get('').rsplit('-', 1)[0].strip()
+    tweet_createtime = response.xpath("string(//meta[@property='article:published_time']/@content)").get('').strip()
+    tweet_author = response.xpath("string(//meta[@name='author']/@content)").get('').strip()
+    ps = response.xpath("//main//div[contains(@class,'has-text-align-center') or contains(@class,"
+                        "'entry-content')]/node()[self::p or self::h2]")
+    article_content = '\n'.join([p.xpath('string(.)').get('').strip() for p in ps if p]).strip()
+    html_content = response.xpath("//main[@id]//div[contains(@class,'entry-content')]").get('')
+    img_url = response.xpath("//meta[@property='og:image']/@content|//main//div[contains(@class,"
+                             "'entry-content')]/figure/img/@src").getall()
+    return parsetweet(item, article_title, article_content, tweet_author, tweet_createtime, img_url, html_content,
+                      _translatetext=translate_text_googleapi)
+
+
+def parse_tweet_nprorg(response, item):
+    article_title = response.xpath("string(//meta[@property='og:title']/@content)").get('').strip()
+    tweet_createtime = response.xpath('//script').re_first(r'"fullPubDate":\s*"(.*?)"', '').strip()
+    tweet_author = response.xpath("string(//meta[@name='cXenseParse:author']/@content)").get('').strip()
+    ps = response.xpath("//article[@class='story']/div[@id='storytext' or @class='transcript storytext']/node()["
+                        "self::p or self::h3]")
+    article_content = '\n'.join([p.xpath('string(.)').get('').strip() for p in ps if p]).strip()
+    html_content = response.xpath("//article[@class='story']/div").get('')
+    img_url = response.xpath(
+        "//meta[@property='og:image']/@content|//div[@class='storytext storytext--full']//img/@src").getall()
+    return parsetweet(item, article_title, article_content, tweet_author, tweet_createtime, img_url, html_content,
+                      _translatetext=translate_text_googleapi)
+
+
+def parse_tweet_nbcnews(response, item):
+    article_title = response.xpath("string(//meta[@property='og:title']/@content)").get('').strip()
+    tweet_createtime = response.xpath("string(//meta[@property='article:published_time']/@content)").get(
+        '').strip() or response.xpath('//script').re_first(r'"uploadDate":\s*"(.*?)"', '').strip()
+    tweet_author = response.xpath("string(//meta[@property='cXenseParse:author']/@content)").get('').strip()
+    ps = response.xpath("//div[@class='article-body__content']/p|//p/span[@class='video-details__dek-description']")
+    article_content = '\n'.join([p.xpath('string(.)').get('').strip() for p in ps if p]).strip()
+    html_content = response.xpath("//div[@class='article-body__content']").get('')
+    img_url = response.xpath(
+        "//meta[@property='og:image']/@content|//div[@class='article-body__content']/figure/picture/img/@src").getall()
+    return parsetweet(item, article_title, article_content, tweet_author, tweet_createtime, img_url, html_content,
+                      _translatetext=translate_text_googleapi)
+
+
+def parse_tweet_abcnewsgo(response, item):
+    article_title = response.xpath("string(//meta[@property='og:title']/@content)").get('').strip()
+    if article_title.startswith('Video '):
+        article_title = article_title[6:]
+    tweet_createtime = response.xpath("string(//meta[@property='lastPublishedDate']/@content)").get('').strip()
+    tweet_author = ''
+    ps = response.xpath("//div[@data-testid='prism-article-body']/p|//h3["
+                        "@class='video-info-module__text--subtitle__vod']")
+    article_content = '\n'.join([p.xpath('string(.)').get('').strip() for p in ps if p]).strip()
+    html_content = response.xpath("//div[@data-testid='prism-article-body']").get('')
+    img_url = response.xpath(
+        "//meta[@property='og:image']/@content|//div[@data-testid='prism-article-body']//img/@src").getall()
+    return parsetweet(item, article_title, article_content, tweet_author, tweet_createtime, img_url, html_content,
+                      _translatetext=translate_text_googleapi)
+
+
+def parse_tweet_cbsnews(response, item):
+    article_title = response.xpath("string(//meta[@property='og:title']/@content)").get('').strip()
+    tweet_createtime = response.xpath('//script').re_first(r'"dateModified":\s*"(.*?)"', '').strip()
+    tweet_author = response.xpath('string(//div[@class="author__profile__name"])').get('').strip()
+    ps = response.xpath("//section[@class='content__body']/node()[self::p or self::h2]|//section["
+                        "@class='content-updating-story__content-wrapper']//node()[self::p or "
+                        "self::h2]|//div/player/div/div/span")
+    article_content = '\n'.join([p.xpath('string(.)').get('').strip() for p in ps if p]).strip()
+    html_content = response.xpath("//section[@class='content__body']").get('')
+    img_url = response.xpath(
+        "//meta[@property='og:image']/@content|//section[@class='content__body']/figure//img/@src").getall()
+    return parsetweet(item, article_title, article_content, tweet_author, tweet_createtime, img_url, html_content,
+                      _translatetext=translate_text_googleapi)
+
+
+def parse_tweet_apnews(response, item):
+    article_title = response.xpath("string(//meta[@property='og:title']/@content)").get('').strip()
+    tweet_createtime = response.xpath("string(//meta[@property='article:published_time']/@content)").get(
+        '').strip() or response.xpath('//script').re_first(r'"datePublished":\s*"(.*?)"', '').strip()
+    tweet_author = response.xpath("string(//div[@class='Author-name'])").get('').strip()
+    ps = response.xpath("//div[@class='RichTextStoryBody RichTextBody']//p|//div[@class='VideoPage-pageSubHeading']")
+    article_content = '\n'.join([p.xpath('string(.)').get('').strip() for p in ps if p]).strip()
+    html_content = response.xpath("//div[@class='RichTextStoryBody RichTextBody']|//astro-island").get('')
+    img_url = response.xpath(
+        "//meta[@property='og:image']/@content|//div[@class='RichTextStoryBody RichTextBody']//figure/picture/img/@src").getall()
+    return parsetweet(item, article_title, article_content, tweet_author, tweet_createtime, img_url, html_content,
+                      _translatetext=translate_text_googleapi)
+
+
+def parse_tweet_reuters(response, item):
+    article_title = response.xpath("string(//meta[@property='og:title']/@content)").get('').strip()
+    tweet_createtime = response.xpath("string(//meta[@name='article:published_time']/@content)").get('').strip()
+    tweet_author = response.xpath("string(//meta[@name='article:author']/@content)").get('').strip()
+    tweet_author = '' if tweet_author.lower() == 'reuters' else tweet_author
+    ps = response.xpath("//div[contains(@data-testid, 'paragraph-')]|//p[contains(@id, 'paragraph-')]")
+    article_content = '\n'.join([p.xpath('string(.)').get('').strip() for p in ps if p]).strip()
+    html_content = response.xpath("//div[@data-testid='ArticleBody']").get('')
+    img_url = response.xpath("//meta[@property='og:image']/@content").getall()
+    return parsetweet(item, article_title, article_content, tweet_author, tweet_createtime, img_url, html_content,
+                      _translatetext=translate_text_googleapi)
+
+
+def parse_tweet_politico(response, item):
+    article_title = response.xpath("string(//meta[@property='og:title']/@content)").get('').strip()
+    tweet_createtime = (response.xpath("string(//meta[@property='article:published_time']/@content)").get(
+        '').strip() or response.xpath('//script').re_first(r'"datePublished"\s*:\s*"(.*?)"', '').strip() or
+                        response.xpath("string(//time[@itemprop='datePublished']/@datetime)").get('').strip())
+    tweet_author = response.xpath('//script').re_first(r'"content_author":\s*"(.*?)"', '').strip()
+    ps = response.xpath("//div[contains(@class,'mx-auto')]/node()[self::p or self::h3]|//div["
+                        "@class='post-card']|//div[@class='story-text']/node()[self::p or self::h3]")
+    article_content = '\n'.join([p.xpath('string(.)').get('').strip() for p in ps if p]).strip()
+    html_content = response.xpath("//div[contains(@class,'mx-auto')]").get('')
+    img_url = response.xpath("//meta[@property='og:image']/@content").getall()
+    return parsetweet(item, article_title, article_content, tweet_author, tweet_createtime, img_url, html_content,
+                      _translatetext=translate_text_googleapi)
+
+
 tweet_mapping = {
     'rfa.org': parse_tweet_rfa,
     'foxnews.com': parse_tweet_foxnews,
@@ -2748,7 +2870,15 @@ tweet_mapping = {
     'nationthailand.com': parse_tweet_nationthailand,
     'thebangkoktimes.com': parse_tweet_thebangkoktimes,
     'mmgpmedia.com': parse_tweet_mmgpmedia,
-    'moi.gov.mm': parse_tweet_moigov
+    'moi.gov.mm': parse_tweet_moigov,
+    'svtoday.org': parse_tweet_svtodayorg,
+    'npr.org': parse_tweet_nprorg,
+    'nbcnews.com': parse_tweet_nbcnews,
+    'abcnews.go.com': parse_tweet_abcnewsgo,
+    'cbsnews.com': parse_tweet_cbsnews,
+    'apnews.com': parse_tweet_apnews,
+    'reuters.com': parse_tweet_reuters,
+    'politico.com': parse_tweet_politico
 }
 
 

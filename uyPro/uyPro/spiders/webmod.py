@@ -2737,6 +2737,112 @@ def parse_tweet_politico(response, item):
                       _translatetext=translate_text_googleapi)
 
 
+def parse_tweet_minescd(response, item):
+    article_title = response.xpath("string(//meta[@property='og:title']/@content)").get(
+        '').replace(' - MINES.CD - Premier média congolais du secteur minier', '').strip()
+    tweet_createtime = response.xpath("string(//meta[@property='article:published_time']/@content)").get('').strip()
+    tweet_author = response.xpath("string(//meta[@name='author']/@content)").get('').strip()
+    tweet_author = '' if tweet_author.lower() == 'mines' else tweet_author
+    tweet_author = '' if tweet_author.lower() == 'mines.cd' else tweet_author
+    ps = response.xpath("//div[contains(@class,'entry-content')]/node()[self::p or self::ul]")
+    article_content = '\n'.join([p.xpath('string(.)').get('').strip() for p in ps if p]).strip()
+    html_content = response.xpath("//div[contains(@class,'entry-content')]").get('')
+    img_url = response.xpath(
+        "//meta[@property='og:image']/@content|//div[contains(@class,'entry-content')]//img/@src").getall()
+    img_url = [imgurl.replace('http://68.183.43.82/', 'https://mines.cd/') for imgurl in img_url if imgurl.strip()]
+    return parsetweet(item, article_title, article_content, tweet_author, tweet_createtime, img_url, html_content,
+                      _translatetext=translate_text_googleapi)
+
+
+def parse_tweet_7sur7cd(response, item):
+    article_title = response.xpath("string(//meta[@property='og:title']/@content)").get('').strip()
+    tweet_createtime = response.xpath("string(//meta[@property='article:published_time']/@content)").get('').strip()
+    tweet_author = response.xpath("string(//meta[@name='author']/@content)").get('').strip()
+    ps = response.xpath("//div[@class='content']/div//node()[self::p or self::h3]")
+    article_content = '\n'.join([p.xpath('string(.)').get('').strip() for p in ps if p]).strip()
+    html_content = response.xpath("//div[@class='content']/div").get('')
+    imgurls = response.xpath("//meta[@property='og:image:url']/@content|//div[@class='content']/div/img/@src").getall()
+    img_url = [urljoin('https://7sur7.cd/', imgurl) for imgurl in imgurls if imgurl.strip()]
+    return parsetweet(item, article_title, article_content, tweet_author, tweet_createtime, img_url, html_content,
+                      _translatetext=translate_text_googleapi)
+
+
+def parse_tweet_radiookapinet(response, item):
+    article_title = response.xpath("string(//meta[@property='og:title']/@content)").get('').strip()
+    tweet_createtime = response.xpath("string(//meta[@property='article:published_time']/@content)").get('').strip()
+    tweet_author = response.xpath("string(//meta[@name='author']/@content)").get('').strip()
+    ps = response.xpath("//div[@class='field-items']//node()[self::p or self::h3 or self::ul]")
+    article_content = '\n'.join([p.xpath('string(.)').get('').strip() for p in ps if p]).strip()
+    html_content = response.xpath("//div[@class='field-items']").get('')
+    img_url = response.xpath("//meta[@property='og:image:url']/@content").getall()
+    return parsetweet(item, article_title, article_content, tweet_author, tweet_createtime, img_url, html_content,
+                      _translatetext=translate_text_googleapi)
+
+
+def parse_tweet_acpcd(response, item):
+    article_title = response.xpath("string(//meta[@property='og:title']/@content)").get('').rsplit('-', 1)[0].strip()
+    tweet_createtime = response.xpath("string(//div[@class='tdb-block-inner td-fix-index']/time/@datetime)").get('').strip()
+    tweet_author = ''
+    ps = response.xpath("//div[@class='tdb-block-inner td-fix-index']/p")
+    article_content = '\n'.join([p.xpath('string(.)').get('').strip() for p in ps if p]).strip()
+    html_content = response.xpath("//div[@class='tdb-block-inner td-fix-index']").get('')
+    img_url = response.xpath("//meta[@property='og:image']/@content|//div[@class='tdb-block-inner "
+                             "td-fix-index']/figure/img/@src").getall()
+    return parsetweet(item, article_title, article_content, tweet_author, tweet_createtime, img_url, html_content,
+                      _translatetext=translate_text_googleapi)
+
+
+def parse_tweet_neticnewsnet(response, item):
+    article_title = response.xpath("string(//meta[@property='og:title']/@content)").get('').rsplit('|', 1)[0].strip()
+    tweet_createtime = response.xpath("string(//meta[@property='article:published_time']/@content)").get('').strip()
+    tweet_author = response.xpath("string(//meta[@name='author']/@content)").get('').strip()
+    ps = response.xpath("//div[@id='penci-post-entry-inner']/p")
+    article_content = '\n'.join([p.xpath('string(.)').get('').strip() for p in ps if p]).strip()
+    html_content = response.xpath("//div[@id='penci-post-entry-inner']").get('')
+    img_url = response.xpath("//meta[@property='og:image']/@content").getall()
+    return parsetweet(item, article_title, article_content, tweet_author, tweet_createtime, img_url, html_content,
+                      _translatetext=translate_text_googleapi)
+
+
+def parse_tweet_enquetecd(response, item):
+    article_title = response.xpath("string(//meta[@property='og:title']/@content)").get('').rsplit('-', 1)[0].strip()
+    tweet_createtime = response.xpath("string(//meta[@property='article:published_time']/@content)").get('').strip()
+    tweet_author = response.xpath("string(//meta[@name='author']/@content)").get('').strip()
+    ps = response.xpath("//div[contains(@class, 'tdb_single_content')]/div[@class='tdb-block-inner "
+                        "td-fix-index']/node()[self::p or self::ul or self::div[not(@style)]]")
+    article_content = '\n'.join([p.xpath('string(.)').get('').strip() for p in ps if p]).strip()
+    html_content = response.xpath("//div[contains(@class, 'tdb_single_content')]/div[@class='tdb-block-inner "
+                                  "td-fix-index']").get('')
+    img_url = response.xpath("//meta[@property='og:image']/@content").getall()
+    return parsetweet(item, article_title, article_content, tweet_author, tweet_createtime, img_url, html_content,
+                      _translatetext=translate_text_googleapi)
+
+
+def parse_tweet_congoquotidien(response, item):
+    article_title = response.xpath("string(//meta[@property='og:title']/@content)").get('').rsplit('-', 1)[0].strip()
+    tweet_createtime = response.xpath("string(//meta[@property='article:published_time']/@content)").get('').strip()
+    tweet_author = response.xpath("string(//meta[@name='twitter:data1']/@content)").get('').strip()
+    ps = response.xpath("//div[@class='tdb-block-inner td-fix-index']/p")
+    article_content = '\n'.join([p.xpath('string(.)').get('').strip() for p in ps if p]).strip()
+    html_content = response.xpath("//div[@class='tdb-block-inner td-fix-index']").get('')
+    img_url = response.xpath("//meta[@property='og:image']/@content").getall()
+    return parsetweet(item, article_title, article_content, tweet_author, tweet_createtime, img_url, html_content,
+                      _translatetext=translate_text_googleapi)
+
+
+def parse_tweet_congonet24(response, item):
+    article_title = response.xpath("string(//meta[@property='og:title']/@content)").get('').rsplit('-', 1)[0].strip()
+    tweet_createtime = response.xpath("string(//meta[@property='article:published_time']/@content)").get('').strip()
+    tweet_author = response.xpath("string(//meta[@name='author']/@content)").get('').strip()
+    ps = response.xpath("//div[@class='newsx-post-content']/p")
+    article_content = '\n'.join([p.xpath('string(.)').get('').strip() for p in ps if p]).strip()
+    html_content = response.xpath("//div[@class='newsx-post-content']").get('')
+    img_url = response.xpath("//div[@class='newsx-single-post-media']/img/@src|//div["
+                             "@class='newsx-post-content']/figure/img/@src").getall()
+    return parsetweet(item, article_title, article_content, tweet_author, tweet_createtime, img_url, html_content,
+                      _translatetext=translate_text_googleapi)
+
+
 tweet_mapping = {
     'rfa.org': parse_tweet_rfa,
     'foxnews.com': parse_tweet_foxnews,
@@ -2878,7 +2984,15 @@ tweet_mapping = {
     'cbsnews.com': parse_tweet_cbsnews,
     'apnews.com': parse_tweet_apnews,
     'reuters.com': parse_tweet_reuters,
-    'politico.com': parse_tweet_politico
+    'politico.com': parse_tweet_politico,
+    'mines.cd': parse_tweet_minescd,
+    '7sur7.cd': parse_tweet_7sur7cd,
+    'radiookapi.net': parse_tweet_radiookapinet,
+    'acp.cd': parse_tweet_acpcd,
+    'netic-news.net': parse_tweet_neticnewsnet,
+    'enquete.cd': parse_tweet_enquetecd,
+    'congoquotidien.com': parse_tweet_congoquotidien,
+    'congonet24.com': parse_tweet_congonet24
 }
 
 
